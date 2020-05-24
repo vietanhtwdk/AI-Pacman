@@ -303,12 +303,12 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        pos = state[0]
-        Visited_Corners = state[1]
+        pos = state[0] 
+        Visited_Corners = state[1] 
         if pos in self.corners:
             if pos not in Visited_Corners:
                 Visited_Corners.append(pos)
-            return len(Visited_Corners)==4
+            return len(Visited_Corners)==4 # nếu đủ cả 4 corner trả về true
         else:
             return False 
         util.raiseNotDefined()
@@ -331,15 +331,16 @@ class CornersProblem(search.SearchProblem):
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
             "*** YOUR CODE HERE ***"
-            dx, dy = Actions.directionToVector(action)
-            nextx, nexty = int(x + dx), int(y + dy)
+            dx, dy = Actions.directionToVector(action) # directionToVector trong game.py, tạo vector cho action
+            nextx, nexty = int(x + dx), int(y + dy) 
             next_node = (nextx, nexty)
             hitsWall = self.walls[nextx][nexty]
-            if not hitsWall:
-                sucVCorners = list(Visited_Corners) 
+            if not hitsWall: # nếu bước tiếp theo không va tường
+                sucVCorners = list(Visited_Corners) # tạo list copy các visited corner để xử lý trong vòng for
                 if next_node in self.corners:
                     if next_node not in sucVCorners:
                         sucVCorners.append( next_node )
+                # successor state = next_node, sucVCorners
                 successor = ((next_node, sucVCorners), action, 1)
                 successors.append(successor)
         self._expanded += 1 # DO NOT CHANGE

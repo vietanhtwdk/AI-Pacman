@@ -91,7 +91,7 @@ def depthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     Frontier = util.Stack() # theo độ sâu, vào sau ra sau dùng stack
     Visited = []
-    Frontier.push( (problem.getStartState(), []) ) # đấy startstate + mảng rỗng lưu action vào stack 
+    Frontier.push( (problem.getStartState(), []) ) # đấy (startstate + mảng rỗng lưu action)=item vào stack 
 
     while Frontier.isEmpty() == 0: # khi stack không rỗng
         state, actions = Frontier.pop() # loại trạng thái đầu stack 
@@ -107,7 +107,6 @@ def depthFirstSearch(problem):
         for successor, action, stepCost in problem.getSuccessors(state): # loop các successor nếu chưa visit, thêm các unvisited successor vào stack
             if successor not in Visited:
                 Frontier.push((successor, actions + [action])) # actions(successor) = actions(predecessor) + action tới nó
-    
     util.raiseNotDefined()
 
 def breadthFirstSearch(problem):

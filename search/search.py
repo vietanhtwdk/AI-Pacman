@@ -91,7 +91,7 @@ def depthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     Frontier = util.Stack() # theo độ sâu, vào sau ra sau dùng stack
     Visited = []
-    Frontier.push( (problem.getStartState(), []) ) # đấy startstate vào stack
+    Frontier.push( (problem.getStartState(), []) ) # đấy startstate + mảng rỗng lưu action vào stack 
 
     while Frontier.isEmpty() == 0: # khi stack không rỗng
         state, actions = Frontier.pop() # loại trạng thái đầu stack 
@@ -104,7 +104,7 @@ def depthFirstSearch(problem):
         if problem.isGoalState(state): # state hiện tại là goal trả về actions
             return actions 
 
-        for successor, action, stepCost in problem.getSuccessors(state): # nếu chưa đến state goal, thêm các unvisited successor vào stack
+        for successor, action, stepCost in problem.getSuccessors(state): # loop các successor nếu chưa visit, thêm các unvisited successor vào stack
             if successor not in Visited:
                 Frontier.push((successor, actions + [action])) # actions(successor) = actions(predecessor) + action tới nó
     
@@ -115,7 +115,7 @@ def breadthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     Frontier = util.Queue() # theo bề ngang, vào trước ra trước dùng queue
     Visited = []
-    Frontier.push( (problem.getStartState(), []) ) # đấy startstate vào queue
+    Frontier.push( (problem.getStartState(), []) ) # đấy startstate + mảng rỗng lưu action vào queue
 
     while Frontier.isEmpty() == 0: # khi queue không rỗng
         state, actions = Frontier.pop() # loại trạng thái đầu queue 
@@ -128,7 +128,7 @@ def breadthFirstSearch(problem):
         if problem.isGoalState(state): # state hiện tại là goal trả về actions
             return actions 
 
-        for successor, action, stepCost in problem.getSuccessors(state): # nếu chưa đến state goal, thêm các unvisited successor vào queue
+        for successor, action, stepCost in problem.getSuccessors(state): # loop các successor nếu chưa visit, thêm các unvisited successor vào queue
             if successor not in Visited:
                 Frontier.push((successor, actions + [action])) # actions(successor) = actions(predecessor) + action tới nó
     util.raiseNotDefined()
@@ -139,38 +139,26 @@ def uniformCostSearch(problem):
     #python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs
     #python pacman.py -l mediumDottedMaze -p StayEastSearchAgent
     #python pacman.py -l mediumScaryMaze -p StayWestSearchAgent
-
-    def _update(Frontier, item, priority):
-        for index, (p, c, i) in enumerate(Frontier.heap):
-            if i[0] == item[0]:
-                if p <= priority:
-                    break
-                del Frontier.heap[index]
-                Frontier.heap.append((priority, c, item))
-                heapq.heapify(Frontier.heap)
-                break
-        else:
-            Frontier.push(item, priority)
-
+            
+    # khởi tạo
     Frontier = util.PriorityQueue()
     Visited = []
-    Frontier.push( (problem.getStartState(), []), 0 )
-    Visited.append( problem.getStartState() )
+    Frontier.push( (problem.getStartState(), []), 0 ) # priority startstate = 0
 
-    while Frontier.isEmpty() == 0:
+    while Frontier.isEmpty() == 0: # khi Frontier không rỗng
         state, actions = Frontier.pop()
 
+        if state in Visited:
+            continue
+        
+        Visited.append( state )
+        
         if problem.isGoalState(state):
             return actions
 
-        if state not in Visited:
-            Visited.append( state )
-
-        for next in problem.getSuccessors(state):
-            n_state = next[0]
-            n_direction = next[1]
-            if n_state not in Visited:
-                _update( Frontier, (n_state, actions + [n_direction]), problem.getCostOfActions(actions+[n_direction]) )
+        for successor, action, stepCost in problem.getSuccessors(state): # loop các successor nếu chưa visit push vào priority queue kèm cost để xếp ưu tiên
+            if successor not in Visited:
+                Frontier.push((successor, actions + [action]), stepCost + problem.getCostOfActions(actions)) # cost = cost(successor) + cost các action trước đó
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -183,39 +171,45 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    def _update(Frontier, item, priority):
-        for index, (p, c, i) in enumerate(Frontier.heap):
-            if i[0] == item[0]:
-                if p <= priority:
+      #init
+    open_set = util.PriorityQueue() 
+    close_set = []
+    start = problem.getStartState()
+    g_values = {}
+    f_values = {}
+    g_values[start] = 0
+    f_values[start] = g_values[start] + heuristic(start, problem)
+
+    # priority of open_set is f_values 
+    open_set.push((start, [], g_values[start]), f_values[start])
+    
+    print(open_set.heap)
+    # cost = g()
+    position, action, cost = open_set.pop()
+    # add to visited list
+    close_set.append((position, cost + heuristic(start, problem)))
+
+    while problem.isGoalState(position) is not True: 
+        successor_set = problem.getSuccessors(position) 
+        for successor in successor_set:
+            visited = False
+            total_cost = cost + successor[2] # g()
+            for (visitedPosition, visitedCost) in close_set:               
+                # if the successor in close_set but higher cost than previous
+                if (successor[0] == visitedPosition) and (total_cost >= visitedCost): 
+                    visited = True
                     break
-                del Frontier.heap[index]
-                Frontier.heap.append((priority, c, item))
-                heapq.heapify(Frontier.heap)
-                break
-        else:
-            Frontier.push(item, priority)
+            # else visited = False 
+            if not visited:        
+                open_set.push((successor[0], action + [successor[1]], cost + successor[2]),cost + successor[2] + heuristic(successor[0],problem)) 
+                close_set.append((successor[0],cost + successor[2])) 
 
-    Frontier = util.PriorityQueue()
-    Visited = []
-    Frontier.push( (problem.getStartState(), []), heuristic(problem.getStartState(), problem) )
-    Visited.append( problem.getStartState() )
+        position, action, cost = open_set.pop()
 
-    while Frontier.isEmpty() == 0:
-        state, actions = Frontier.pop()
-        #print state
-        if problem.isGoalState(state):
-            #print 'Find Goal'
-            return actions
+    print(action)
 
-        if state not in Visited:
-            Visited.append( state )
-
-        for next in problem.getSuccessors(state):
-            n_state = next[0]
-            n_direction = next[1]
-            if n_state not in Visited:
-                _update( Frontier, (n_state, actions + [n_direction]), \
-                    problem.getCostOfActions(actions+[n_direction])+heuristic(n_state, problem) )
+    return action
+    # python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic/euclideanHeuristic/nullHeuristic
     util.raiseNotDefined()
 
 

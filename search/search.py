@@ -103,7 +103,7 @@ def depthFirstSearch(problem):
         
         if problem.isGoalState(state): # state hiện tại là goal trả về actions
             return actions 
-
+        
         for successor, action, stepCost in problem.getSuccessors(state): # loop các successor nếu chưa visit, thêm các unvisited successor vào stack
             if successor not in Visited:
                 Frontier.push((successor, actions + [action])) # actions(successor) = actions(predecessor) + action tới nó
@@ -170,46 +170,27 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-      #init
-    open_set = util.PriorityQueue() 
-    close_set = []
-    start = problem.getStartState()
-    g_values = {}
-    f_values = {}
-    g_values[start] = 0
-    f_values[start] = g_values[start] + heuristic(start, problem)
+    visited = []
+    Frontier = util.PriorityQueue()
+    Frontier.push((problem.getStartState(), []), 0)
 
-    # priority of open_set is f_values 
-    open_set.push((start, [], g_values[start]), f_values[start])
-    
-    print(open_set.heap)
-    # cost = g()
-    position, action, cost = open_set.pop()
-    # add to visited list
-    close_set.append((position, cost + heuristic(start, problem)))
+    while Frontier.isEmpty() == 0:
+        state, actions = Frontier.pop()
 
-    while problem.isGoalState(position) is not True: 
-        successor_set = problem.getSuccessors(position) 
-        for successor in successor_set:
-            visited = False
-            total_cost = cost + successor[2] # g()
-            for (visitedPosition, visitedCost) in close_set:               
-                # if the successor in close_set but higher cost than previous
-                if (successor[0] == visitedPosition) and (total_cost >= visitedCost): 
-                    visited = True
-                    break
-            # else visited = False 
-            if not visited:        
-                open_set.push((successor[0], action + [successor[1]], cost + successor[2]),cost + successor[2] + heuristic(successor[0],problem)) 
-                close_set.append((successor[0],cost + successor[2])) 
+        if state in visited:
+            continue
 
-        position, action, cost = open_set.pop()
+        visited.append(state)
 
-    print(action)
+        if problem.isGoalState(state):
+            return actions
 
-    return action
-    # python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic/euclideanHeuristic/nullHeuristic
-    util.raiseNotDefined()
+        for successor, action, stepCost in problem.getSuccessors(state):
+            if successor not in visited:
+                Frontier.push(
+                    (successor, actions + [action]),
+                    stepCost + problem.getCostOfActions(actions) +
+                    heuristic(successor, problem)) #cost = cost(successor) + cost các action trước đó + heuristic cost của successor tới đích
 
 
 # Abbreviations

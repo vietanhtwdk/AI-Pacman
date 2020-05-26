@@ -333,15 +333,13 @@ class CornersProblem(search.SearchProblem):
             "*** YOUR CODE HERE ***"
             dx, dy = Actions.directionToVector(action) # directionToVector trong game.py, tạo vector cho action
             nextx, nexty = int(x + dx), int(y + dy) 
-            next_node = (nextx, nexty)
-            hitsWall = self.walls[nextx][nexty]
-            if not hitsWall: # nếu bước tiếp theo không va tường
-                sucVCorners = list(Visited_Corners) # tạo list copy các visited corner để xử lý trong vòng for
+            next_node = (nextx, nexty)           
+            if not self.walls[nextx][nexty]: # nếu bước tiếp theo không va tường
+                sucVCorners = list(Visited_Corners) # tạo list copy các visited corner để xử lý với hướng hiện tại
                 if next_node in self.corners:
                     if next_node not in sucVCorners:
-                        sucVCorners.append( next_node )
-                # successor state = next_node, sucVCorners
-                successor = ((next_node, sucVCorners), action, 1)
+                        sucVCorners.append( next_node )             
+                successor = ((next_node, sucVCorners), action, 1) # successor state = next_node, sucVCorners
                 successors.append(successor)
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -386,16 +384,14 @@ def cornersHeuristic(state, problem):
         if corners[i] not in Visited_Corners:
             un_Visited_Corner.append(corners[i])
 
-    #print len(un_Visited_Corner)
-
     cur_position = node
     while(len(un_Visited_Corner)!=0):
-        distance, corner = min( [(util.manhattanDistance(cur_position ,corner),corner) for corner in un_Visited_Corner] )
+        distance, corner = min((util.manhattanDistance(cur_position ,corner),corner) for corner in un_Visited_Corner ) # lấy min manhatandistance trong số các corner chưa visit
         h_sum = h_sum + distance
         cur_position = corner
         un_Visited_Corner.remove(corner) 
 
-    return h_sum # Default to trivial solution
+    return h_sum 
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"

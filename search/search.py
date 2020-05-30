@@ -170,28 +170,34 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    visited = []
-    Frontier = util.PriorityQueue()
-    Frontier.push((problem.getStartState(), []), 0)
+    open_set = util.PriorityQueue() 
+    close_set = []
+    start = problem.getStartState()
+    open_set.push((start, [], 0), heuristic(start, problem))
+    
+    # cost = g()
+    position, action, cost = open_set.pop()
+    # add to visited list
+    close_set.append((position, cost + heuristic(start, problem)))
 
-    while Frontier.isEmpty() == 0:
-        state, actions = Frontier.pop()
+    while problem.isGoalState(position) is not True: 
+        successor_set = problem.getSuccessors(position) 
+        for successor in successor_set:
+            visited = False
+            total_cost = cost + successor[2] # g()
+            for (visitedPosition, visitedCost) in close_set:               
+                # if the successor in close_set but higher cost than previous
+                if (successor[0] == visitedPosition) and (total_cost >= visitedCost): 
+                    visited = True
+                    break
+            # else visited = False 
+            if not visited:        
+                open_set.push((successor[0], action + [successor[1]], cost + successor[2]),cost + successor[2] + heuristic(successor[0],problem)) 
+                close_set.append((successor[0],cost + successor[2])) 
 
-        if state in visited:
-            continue
+        position, action, cost = open_set.pop()
 
-        visited.append(state)
-
-        if problem.isGoalState(state):
-            return actions
-
-        for successor, action, stepCost in problem.getSuccessors(state):
-            if successor not in visited:
-                Frontier.push(
-                    (successor, actions + [action]),
-                    stepCost + problem.getCostOfActions(actions) +
-                    heuristic(successor, problem)) #cost = cost(successor) + cost các action trước đó + heuristic cost của successor tới đích
-
+    return action
 
 # Abbreviations
 bfs = breadthFirstSearch
